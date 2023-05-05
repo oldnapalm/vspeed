@@ -1,0 +1,44 @@
+name: pyinstaller
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
+    - uses: engineerd/configurator@v0.0.8
+      with:
+        name: "upx.exe"
+        url: "https://github.com/upx/upx/releases/download/v4.0.2/upx-4.0.2-win64.zip"
+        pathInArchive: "upx-4.0.2-win64/upx.exe"
+
+    - run: pip install -r requirements.txt
+    - run: pip install pywin32 git+https://github.com/oldnapalm/pyinstaller.git
+    - run: pyinstaller bot.spec
+    - run: pyinstaller vspeed.spec
+
+    - uses: vimtor/action-zip@v1
+      with:
+        files: dist zones.csv
+        dest: vspeed-nightly.zip
+
+    - uses: WebFreak001/deploy-nightly@v1.1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
+      with:
+        upload_url: https://uploads.github.com/repos/oldnapalm/vspeed/releases/102072859/assets{?name,label}
+        release_id: 102072859
+        asset_path: vspeed-nightly.zip
+        asset_name: vspeed-nightly.zip
+        asset_content_type: application/zip

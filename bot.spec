@@ -3,7 +3,7 @@
 block_cipher = None
 
 binaries = [
-    ('C:\\Windows\\System32\\libusb0.dll', '.'),
+    ('libusb0.dll', '.'),
 ]
 
 a = Analysis(['bot.py'],
@@ -31,6 +31,5 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          upx_exclude="vcruntime140.dll",
           runtime_tmpdir=None,
           console=True )
