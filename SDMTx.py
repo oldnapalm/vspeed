@@ -41,21 +41,34 @@ class SDMTx(object):
     def unassign(self):
         self.channel.unassign()
 
-    def update(self, speed):
+    def update(self, speed, cadence=0):
         if DEBUG: print('SDMTx: update called with speed ', speed)
         self.SDMData.instantaneousSpeed = speed
         if DEBUG: print('instantaneousSpeed ', self.SDMData.instantaneousSpeed)
-        self.SDMData.strideCount = (self.SDMData.strideCount + 1) & 0xff
-        if DEBUG: print('strideCount ', self.SDMData.strideCount)
+        speed_ms = speed / 3.6
 
-        payload = bytearray(b'\x01')  # Data Page Number
-        payload.append(0x00)
-        payload.append(self.SDMData.strideCount)  # Time
-        payload.append(0x00)
-        payload.append(int(self.SDMData.instantaneousSpeed // 3.6) & 0xf)
-        payload.append(int((self.SDMData.instantaneousSpeed % 3.6) * (256 // 3.6)) & 0xff)
-        payload.append(self.SDMData.strideCount)
-        payload.append(0x00)
+        if cadence == 0:
+            self.SDMData.strideCount = (self.SDMData.strideCount + 1) & 0xff
+            if DEBUG: print('strideCount ', self.SDMData.strideCount)
+
+            payload = bytearray(b'\x01')  # Data Page Number
+            payload.append(0x00)
+            payload.append(self.SDMData.strideCount)  # Time
+            payload.append(0x00)
+            payload.append(int(speed_ms) & 0xf)
+            payload.append(int((speed_ms % 1) * 256) & 0xff)
+            payload.append(self.SDMData.strideCount)
+            payload.append(0x00)
+
+        else:
+            payload = bytearray(b'\x02')
+            payload.append(0xff)
+            payload.append(0xff)
+            payload.append(int(cadence) & 0xff)
+            payload.append(int(speed_ms) & 0xf)
+            payload.append(int((speed_ms % 1) * 256) & 0xff)
+            payload.append(0xff)
+            payload.append(0x01)
 
         ant_msg = message.ChannelBroadcastDataMessage(self.channel.number, data=payload)
         print(f'Speed: {speed:.1f} km/h \r', end="")
