@@ -54,7 +54,7 @@ class CadenceListener(event.EventCallback):
 
             cadence = self.calcCadence(eventTime, revolutions)
             speed = interp(xp, yp, cadence)
-            sdm.update(speed, cadence * 2)
+            sdm.update(speed, cadence)
 
             self.lastTime = eventTime
             self.lastRevolutions = revolutions
